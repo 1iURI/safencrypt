@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>safencrypt</title>
+</head>
+<body>
+<input type="text" id="hello">
+<button id="hello-btn">go</button>
+<div id="hello-result"></div>
+<div id="hello-response"></div>
+</body>
+<script src="safencrypt-config.js"></script>
+<script src="lib/crypto-js/crypto-js.js"></script>
+<script src="safencrypt.js"></script>
+<script src="lib/jquery/dist/jquery.min.js"></script>
+<script>
+    var modulus;
+    var exponent;
+    $(function () {
+        Safencrypt.startUp();
+        var encry = AESUtils.encrypt("liuri", "1234567890123456");
+        console.log(encry);
+        encry = 'WdVcI+FQ+W1ZK6vCG/YaJkzFml9jAKnzpZVT3AjpRuGV2UpLyDUBfCOqFIgZqYMqSgYl0oh+ArL87s4wGSswow==';
+        var decry = AESUtils.decrypt(encry, "1234567890123456");
+        console.log(decry);
+    });
+</script>
+</html>
