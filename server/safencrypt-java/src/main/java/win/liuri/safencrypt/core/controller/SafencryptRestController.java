@@ -14,13 +14,13 @@ public class SafencryptRestController {
     private SafencryptRestService safencryptRestService;
 
     @RequestMapping("/safencrypt/apply-public-key")
-    public Object applyPublicKey(){
+    public Object applyPublicKey() {
         return safencryptRestService.applyPublicKey();
     }
 
-    @RequestMapping(value = "/safencrypt/sign-up-client" , method = RequestMethod.POST)
-    public Object signUpClient(String flag , String data) throws FlagInvalidException {
-        return safencryptRestService.signUpClient(flag , data);
+    @RequestMapping(value = "/safencrypt/sign-up-client", method = RequestMethod.POST)
+    public Object signUpClient(String identifier) throws FlagInvalidException {
+        return safencryptRestService.signUpClient(identifier);
     }
 
 }
