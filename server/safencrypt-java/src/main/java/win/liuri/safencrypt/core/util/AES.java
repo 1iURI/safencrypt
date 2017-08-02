@@ -1,8 +1,6 @@
 package win.liuri.safencrypt.core.util;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,13 +85,10 @@ public class AES {
     }
 
     public static void main(String[] args) {
-        String key = "1234567890123456";
-        String encry = encrypt("liuriliuriliurliuriuliuriliurliuriliuriliuriliuri", key);
+        String key = "85711f61071752b3";
+        String encry = encrypt("123456", key);
         System.out.println(encry);
-        System.out.println(decrypt(encry, key));
-
-
-        System.out.println(" - - - - " + decrypt("jxmdrglvTgQig8lEJBuYZA==" , "1234567890123456"));
+        System.out.println("解密" + decrypt("LrMI8Qe7BGw8CE5FRB+7Fc91kz0XFtJWCo/aJWIiaTm67+WabAlW/cJ6y8KKkznTKXt9z0YyhrH4Sa38QJbut97mspSlajTHN1rYQ10n/iE75eOK1JBTVyRoC/Vb96HJ", "85711f61071752b3"));
     }
 
 }

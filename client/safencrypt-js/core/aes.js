@@ -2,7 +2,7 @@
  * AES加密工具类
  * @constructor
  */
-function AESUtils() {
+function SAES() {
 }
 
 /**
@@ -12,7 +12,7 @@ function AESUtils() {
  * @param {type} ivStr 向量
  * @returns  加密后的数据
  */
-AESUtils.encrypt = function (data, keyStr, ivStr) {
+SAES.aesEncrypt = function (data, keyStr, ivStr) {
     var sendData = CryptoJS.enc.Utf8.parse(data);
     var key = CryptoJS.enc.Utf8.parse(keyStr);
     var iv = CryptoJS.enc.Utf8.parse(ivStr);
@@ -24,6 +24,17 @@ AESUtils.encrypt = function (data, keyStr, ivStr) {
     //return CryptoJS.enc.Base64.stringify(encrypted.toString(CryptoJS.enc.Utf8));
     return CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
 };
+
+/**
+ * AES加密
+ * @param data
+ * @param keyStr
+ * @return {加密后的数据}
+ */
+SAES.encrypt = function (data, keyStr) {
+    return this.aesEncrypt(data, keyStr, keyStr);
+};
+
 /**
  *
  * @param {type} data BASE64的数据
@@ -31,10 +42,21 @@ AESUtils.encrypt = function (data, keyStr, ivStr) {
  * @param {type} iv 向量
  * @return 解密后的数据
  */
-AESUtils.decrypt = function (data, keyStr, ivStr) {
+SAES.aesDecrypt = function (data, keyStr, ivStr) {
     var key = CryptoJS.enc.Utf8.parse(keyStr);
     var iv = CryptoJS.enc.Utf8.parse(ivStr);
     //解密的是基于BASE64的数据，此处data是BASE64数据
     var decrypted = CryptoJS.AES.decrypt(data, key, {iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Iso10126});
     return decrypted.toString(CryptoJS.enc.Utf8);
 };
+
+/**
+ * AES解密
+ * @param data
+ * @param keyStr
+ * @return {解密后的数据}
+ */
+SAES.decrypt = function (data, keyStr) {
+    return this.aesDecrypt(data, keyStr, keyStr);
+};
+
