@@ -74,6 +74,8 @@ public class AES {
 
     public static String decrypt(String content, String key) {
         try {
+            content = content.replaceAll(" ", "");
+            System.out.println("content current: " + content);
             byte[] content_bytes = Base64.decodeBase64(content.getBytes("UTF-8"));
             byte[] key_bytes = key.getBytes("UTF-8");
             byte[] result_bytes = decrypt(content_bytes, key_bytes, false, key_bytes);
@@ -88,7 +90,11 @@ public class AES {
         String key = "85711f61071752b3";
         String encry = encrypt("123456", key);
         System.out.println(encry);
-        System.out.println("解密" + decrypt("LrMI8Qe7BGw8CE5FRB+7Fc91kz0XFtJWCo/aJWIiaTm67+WabAlW/cJ6y8KKkznTKXt9z0YyhrH4Sa38QJbut97mspSlajTHN1rYQ10n/iE75eOK1JBTVyRoC/Vb96HJ", "85711f61071752b3"));
+
+//        bfz6SmvhbdI2c7WMoBpSPVlzHn2NdKMHuerM5w1aiBZghaPW9Wf41F8kYg63OqZ54sZNhB8kTxl46kyBSC8gQ==
+//        bfz6SmvhbdI2c7WMoBpSPVlzHn2NdKMHuerM5w1aiBZghaPW9Wf41F8kYg63OqZ54sZNhB8kTxl46kyBSC+8gQ==
+
+        System.out.println("解密" + decrypt("bfz6SmvhbdI2c7WMoBpSPVlzHn2NdKMHuerM5w1aiBZghaPW9Wf41F8kYg63OqZ5jkRTVjybpmk4l5/K8tCoQ==", "2432b77ce74bc0e3"));
     }
 
 }

@@ -1,11 +1,19 @@
 package win.liuri.safencrypt.core.wrapper;
 
+import org.apache.commons.io.IOUtils;
+import win.liuri.safencrypt.core.Safencrypt;
 import win.liuri.safencrypt.core.exception.EncryptRequestInvalidException;
 import win.liuri.safencrypt.core.exception.FlagInvalidException;
 import win.liuri.safencrypt.core.service.RSAEncryptService;
+import win.liuri.safencrypt.core.util.AES;
 
+import javax.servlet.Servlet;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,9 +27,15 @@ public class SafencryptRequestWrapper extends HttpServletRequestWrapper {
         super(request);
         try {
             parameterMap = decryptParameterMap(request.getParameterMap());
+//            parameterMap = request.getParameterMap();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        return decryptInputStream(super.getInputStream());
     }
 
     @Override
@@ -49,6 +63,15 @@ public class SafencryptRequestWrapper extends HttpServletRequestWrapper {
         return parameterMap.get(name);
     }
 
+    private ServletInputStream decryptInputStream(ServletInputStream servletInputStream) {
+        try {
+            String content = IOUtils.toString(servletInputStream, "UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return servletInputStream;
+    }
+
     /**
      * 解密请求参数map
      *
@@ -60,14 +83,30 @@ public class SafencryptRequestWrapper extends HttpServletRequestWrapper {
         if (!map.containsKey("type"))
             throw new EncryptRequestInvalidException();
         Integer type = Integer.valueOf(map.get("type")[0]);
+        String flag = null;
+        String data = null;
+        if (type >= 2) {
+            flag = map.get("flag")[0];
+            data = map.get("data")[0];
+        }
         if (type == 1) {
             return map;
         } else if (type == 2) {
-            String flag = map.get("flag")[0];
-            String data = map.get("data")[0];
             resultMap.put("identifier", new String[]{RSAEncryptService.decryptJSRequest(flag, data)});
         } else if (type == 3) {
-            return resultMap;
+            String identifier = Safencrypt.getClientProxy().getClientIdentifier(flag);
+            String content = null;
+            try {
+                System.out.println("pre data = " + data);
+                content = AES.decrypt(data, Safencrypt.getClientProxy().getClientIdentifier(flag));
+                content = URLDecoder.decode(URLDecoder.decode(content, "UTF-8"), "UTF-8");
+                for (String item : content.split("&")) {
+                    Integer loc = item.indexOf("=");
+                    resultMap.put(item.substring(0, loc), new String[]{item.substring(loc + 1)});
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             return resultMap;
         }
