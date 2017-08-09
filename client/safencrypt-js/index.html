@@ -5,23 +5,36 @@
     <title>safencrypt</title>
 </head>
 <body>
+<button id="base-on-client-msg">请求基于客户端的消息</button>
+<div id="base-on-client-msg-result"></div>
+<button id="base-on-user-msg">请求基于用户的消息</button>
+<div id="base-on-user-msg-result"></div>
+<button id="non-encrypt-msg">请求不加密的消息</button>
+<div id="non-encrypt-msg-result"></div>
 </body>
+<script src="safencrypt.js"></script>
 <script src="lib/crypto-js/crypto-js.js"></script>
 <script src="lib/jquery/dist/jquery.min.js"></script>
 <script src="safencrypt-config.js"></script>
-<script src="safencrypt.js"></script>
 <script>
-    var modulus;
-    var exponent;
     $(function () {
         Safencrypt.startUp();
-        var encry = SAES.encrypt("liuri", "1234567890123456");
-        console.log(encry);
-        encry = "LrMI8Qe7BGw8CE5FRB+7Fc91kz0XFtJWCo/aJWIiaTnyOrqpADbltieNg2JUpIRmaNXz1iujb8xD7nWU9c+mT4XDETnjxvULVMgNBLhc5PEla5Z5Kv5uEU0xA/0nxIqr";
-//        encry = "6xoQxW0eg5Ltn5BZk0aiLA==";
-        var decry = SAES.decrypt(encry, "85711f61071752b3");
 
-        console.log(decry);
+        $('#base-on-client-msg').click(function () {
+            $.ajax({
+                url: "http://localhost:8080/client-msg",
+                type: 'POST',
+                data: {
+                    msg: '你好= safencrypt!'
+                },
+                success: function (data) {
+                    $('#base-on-client-msg-result').text(JSON.stringify(data));
+                },
+                error: function (err) {
+                    console.log('发生一个错误！');
+                }
+            });
+        });
     });
 </script>
 </html>

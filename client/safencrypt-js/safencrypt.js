@@ -10,7 +10,7 @@ function SAES() {
  * @param {type} data 待加密的字符串
  * @param {type} keyStr 秘钥
  * @param {type} ivStr 向量
- * @returns  加密后的数据
+ * @returns  {string}加密后的数据
  */
 SAES.aesEncrypt = function (data, keyStr, ivStr) {
     var sendData = CryptoJS.enc.Utf8.parse(data);
@@ -29,7 +29,7 @@ SAES.aesEncrypt = function (data, keyStr, ivStr) {
  * AES加密
  * @param data
  * @param keyStr
- * @return {加密后的数据}
+ * @return {string}加密后的数据
  */
 SAES.encrypt = function (data, keyStr) {
     return this.aesEncrypt(data, keyStr, keyStr);
@@ -40,7 +40,7 @@ SAES.encrypt = function (data, keyStr) {
  * @param {type} data BASE64的数据
  * @param {type} key 解密秘钥
  * @param {type} iv 向量
- * @return 解密后的数据
+ * @return {string} 解密后的数据
  */
 SAES.aesDecrypt = function (data, keyStr, ivStr) {
     var key = CryptoJS.enc.Utf8.parse(keyStr);
@@ -54,12 +54,173 @@ SAES.aesDecrypt = function (data, keyStr, ivStr) {
  * AES解密
  * @param data
  * @param keyStr
- * @return {解密后的数据}
+ * @return {string} 解密后的数据
  */
 SAES.decrypt = function (data, keyStr) {
     return this.aesDecrypt(data, keyStr, keyStr);
 };
 
+
+!function (obj) {
+    obj.safencrypt_ajax_inject = function (funs) {
+        window._ahrealxhr = window._ahrealxhr || XMLHttpRequest;
+        XMLHttpRequest = function () {
+            this.xhr = new window._ahrealxhr;
+            for (var attr in this.xhr) {
+                var type = "";
+                try {
+                    type = typeof this.xhr[attr]
+                } catch (e) {
+                }
+                if (type === "function") {
+                    this[attr] = hookFunc(attr);
+                } else {
+                    Object.defineProperty(this, attr, {
+                        get: getFactory(attr),
+                        set: setFactory(attr)
+                    })
+                }
+            }
+        };
+
+        function getFactory(attr) {
+            return function () {
+                return this.hasOwnProperty(attr + "_") ? this[attr + "_"] : this.xhr[attr];
+            }
+        }
+
+        function setFactory(attr) {
+            return function (f) {
+                var xhr = this.xhr;
+                var that = this;
+                if (attr.indexOf("on") != 0) {
+                    this[attr + "_"] = f;
+                    return;
+                }
+                if (funs[attr]) {
+                    xhr[attr] = function () {
+                        funs[attr](that) || f.apply(xhr, arguments);
+                    }
+                } else {
+                    xhr[attr] = f;
+                }
+            }
+        }
+
+        function hookFunc(fun) {
+            return function () {
+                var args = [].slice.call(arguments);
+                if (funs[fun] && funs[fun].call(this, args, this.xhr)) {
+                    return;
+                }
+                return this.xhr[fun].apply(this.xhr, args);
+            }
+        }
+
+        return window._ahrealxhr;
+    };
+    obj.unHookAjax = function () {
+        if (window._ahrealxhr) XMLHttpRequest = window._ahrealxhr;
+        window._ahrealxhr = undefined;
+    }
+}(window);
+
+/**
+ * 加密待发送的数据
+ * @param url 发送的url
+ * @param data 要发送的数据
+ * @return {*} 加密后的数据
+ */
+function encryptSendData(url, data) {
+
+    function monitor_log(msg) {
+        console.log('%c [Safencrypt Monitor] ' + msg + ' -  %c √ Safencrypt已对本次请求进行安全保护 ^_^ %O', 'font-size:16px;color:rgba(22,119,210,255);', 'font-size:12px;color:rgba(9,187,7,255)', url);
+    }
+
+    /**
+     * 判断是否是基于客户端的请求
+     */
+    function isBaseOnClient(url) {
+        for (var i = 0; i < safencrypt_config.base_on_client_urls.length; i++) {
+            var c_url = safencrypt_config.base_on_client_urls[i];
+            if (url.indexOf(c_url) >= 0)
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * 判断是否为不加密的请求
+     */
+    function isNonEncrypt(url) {
+        for (var i = 0; i < safencrypt_config.non_encrypt_urls.length; i++) {
+            var n_url = safencrypt_config.non_encrypt_urls[i];
+            if (url.indexOf(n_url) >= 0)
+                return true;
+        }
+        return false;
+    }
+
+    var sf = new Safencrypt();
+    var ctoken = localStorage[sf.CTOKEN_STORAGE_NAME];
+    var identifier = localStorage[sf.IDENTIFIER_STORAGE_NAME];
+
+    if (url.indexOf(safencrypt_config.apply_public_key_url) >= 0) {
+        // 申请公钥
+        monitor_log('监测到【申请公钥串】的请求');
+    }
+    else if (url.indexOf(safencrypt_config.sign_up_client_url) >= 0) {
+        // 注册客户端
+        monitor_log('监测到【注册客户端】的请求');
+    }
+    else if (isBaseOnClient(url)) {
+        // 基于客户端的请求
+        monitor_log('监测到【基于客户端】的请求');
+        var result = "type=3&flag=" + ctoken + "&data=" + encodeURIComponent(SAES.encrypt(JSON.stringify(data), identifier));
+        console.log('REQ result = ' + result);
+        return result;
+    }
+    else if (isNonEncrypt(url)) {
+        // 不加密的请求
+    }
+    else {
+        // 基于用户相关的请求
+
+    }
+    return data;
+}
+
+// 自动解密响应结果
+function decryptResponse(data) {
+    data = JSON.parse(data);
+    var sf = new Safencrypt();
+    var ctoken = localStorage[sf.CTOKEN_STORAGE_NAME];
+    var identifier = localStorage[sf.IDENTIFIER_STORAGE_NAME];
+    if (data.type === 3)
+    // 基于客户端的请求 响应
+        return SAES.decrypt(data.data, identifier);
+    else
+        return data;
+}
+
+// 自动修改safencrypt的请求pt的请求
+(function (send) {
+    XMLHttpRequest.prototype.send = function (data) {
+        console.log('URL = ' + this.safencrypt_url);
+        this.setRequestHeader("content-type", "application/x-www-form-urlencoded;charset=utf-8");
+        send.call(this, encryptSendData(this.safencrypt_url, data));
+    };
+})(XMLHttpRequest.prototype.send);
+
+// 自动解密safencrypt的密文响应
+safencrypt_ajax_inject({
+    onload: function (xhr) {
+        xhr.responseText = decryptResponse(xhr.responseText);
+    },
+    open: function (arg, xhr) {
+        xhr.safencrypt_url = arg[1];
+    }
+});
 
 (function ($w) {
 
@@ -740,8 +901,8 @@ SAES.decrypt = function (data, keyStr) {
 })(window);
 function Safencrypt() {
 
-    var CTOKEN_STORAGE_NAME = 'safencrypt_ctoken';
-    var IDENTIFIER_STORAGE_NAME = 'safencrypt_identifier';
+    this.CTOKEN_STORAGE_NAME = 'safencrypt_ctoken';
+    this.IDENTIFIER_STORAGE_NAME = 'safencrypt_identifier';
     var self = this;
 
     var REQ_TYPE_APPLY_PUBLIC_KEY = 1;
@@ -779,7 +940,6 @@ function Safencrypt() {
             self.log('开始向服务器端发起注册客户端请求...');
             var key = SRSA.getKeyPair(exponent, '', modulus);
             var data = SRSA.encryptedString(key, self.getIdentifier());
-            console.log('data = ' + data);
             $.ajax({
                 url: safencrypt_config.sign_up_client_url,
                 type: 'POST',
@@ -789,11 +949,15 @@ function Safencrypt() {
                     data: data
                 },
                 success: function (data) {
-                    console.log("注册客户端，服务器返回了：" + SAES.decrypt(data.data, self.getIdentifier()));
-
+                    // 得到服务器返回的对象
+                    var response = JSON.parse(SAES.decrypt(data.data, self.getIdentifier()));
+                    // 存储ctoken到本地
+                    localStorage[self.CTOKEN_STORAGE_NAME] = response.ctoken;
+                    self.log('注册服务器端成功，CTOKEN = ' + response.ctoken + '。激活【注册客户端成功】回调函数');
                 },
                 error: function (err) {
-
+                    self.error('注册客户端失败，无法连接到服务器端。激活【注册客户端失败】回调函数');
+                    signUpClientFailed();
                 }
             })
         });
@@ -803,7 +967,7 @@ function Safencrypt() {
      * 获取浏览器标识
      */
     this.getIdentifier = function () {
-        var identifier = localStorage[IDENTIFIER_STORAGE_NAME];
+        var identifier = localStorage[self.IDENTIFIER_STORAGE_NAME];
         if (identifier === undefined || identifier.length <= 0) {
             identifier = 'xxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                 var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -811,7 +975,7 @@ function Safencrypt() {
             });
             self.log('创建新的浏览器标识：' + identifier);
         }
-        localStorage[IDENTIFIER_STORAGE_NAME] = identifier;
+        localStorage[self.IDENTIFIER_STORAGE_NAME] = identifier;
         return identifier;
     };
 
@@ -820,7 +984,7 @@ function Safencrypt() {
      * @returns {boolean}
      */
     this.checkCToken = function () {
-        var ctoken = localStorage[CTOKEN_STORAGE_NAME];
+        var ctoken = localStorage[self.CTOKEN_STORAGE_NAME];
         return ctoken !== undefined && ctoken.length > 0;
     };
 
@@ -851,5 +1015,9 @@ Safencrypt.startUp = function (signUpClientSuccess, signUpClientFailed) {
     if (!self.checkCToken()) {// 本地没有ctoken
         self.error('检测到当前浏览器未注册至服务器端，启动客户端注册机制...');
         self.signUpClient(signUpClientSuccess, signUpClientFailed);
+    }
+    else {
+        // 本地有Ctoken
+        self.log('启动成功。当前浏览器已经在服务器端注册完毕。');
     }
 };

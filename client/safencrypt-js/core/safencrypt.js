@@ -1,7 +1,7 @@
 function Safencrypt() {
 
-    var CTOKEN_STORAGE_NAME = 'safencrypt_ctoken';
-    var IDENTIFIER_STORAGE_NAME = 'safencrypt_identifier';
+    this.CTOKEN_STORAGE_NAME = 'safencrypt_ctoken';
+    this.IDENTIFIER_STORAGE_NAME = 'safencrypt_identifier';
     var self = this;
 
     var REQ_TYPE_APPLY_PUBLIC_KEY = 1;
@@ -39,7 +39,6 @@ function Safencrypt() {
             self.log('开始向服务器端发起注册客户端请求...');
             var key = SRSA.getKeyPair(exponent, '', modulus);
             var data = SRSA.encryptedString(key, self.getIdentifier());
-            console.log('data = ' + data);
             $.ajax({
                 url: safencrypt_config.sign_up_client_url,
                 type: 'POST',
@@ -49,11 +48,15 @@ function Safencrypt() {
                     data: data
                 },
                 success: function (data) {
-                    console.log("注册客户端，服务器返回了：" + SAES.decrypt(data.data, self.getIdentifier()));
-
+                    // 得到服务器返回的对象
+                    var response = JSON.parse(SAES.decrypt(data.data, self.getIdentifier()));
+                    // 存储ctoken到本地
+                    localStorage[self.CTOKEN_STORAGE_NAME] = response.ctoken;
+                    self.log('注册服务器端成功，CTOKEN = ' + response.ctoken + '。激活【注册客户端成功】回调函数');
                 },
                 error: function (err) {
-
+                    self.error('注册客户端失败，无法连接到服务器端。激活【注册客户端失败】回调函数');
+                    signUpClientFailed();
                 }
             })
         });
@@ -63,7 +66,7 @@ function Safencrypt() {
      * 获取浏览器标识
      */
     this.getIdentifier = function () {
-        var identifier = localStorage[IDENTIFIER_STORAGE_NAME];
+        var identifier = localStorage[self.IDENTIFIER_STORAGE_NAME];
         if (identifier === undefined || identifier.length <= 0) {
             identifier = 'xxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                 var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -71,7 +74,7 @@ function Safencrypt() {
             });
             self.log('创建新的浏览器标识：' + identifier);
         }
-        localStorage[IDENTIFIER_STORAGE_NAME] = identifier;
+        localStorage[self.IDENTIFIER_STORAGE_NAME] = identifier;
         return identifier;
     };
 
@@ -80,7 +83,7 @@ function Safencrypt() {
      * @returns {boolean}
      */
     this.checkCToken = function () {
-        var ctoken = localStorage[CTOKEN_STORAGE_NAME];
+        var ctoken = localStorage[self.CTOKEN_STORAGE_NAME];
         return ctoken !== undefined && ctoken.length > 0;
     };
 
@@ -111,5 +114,9 @@ Safencrypt.startUp = function (signUpClientSuccess, signUpClientFailed) {
     if (!self.checkCToken()) {// 本地没有ctoken
         self.error('检测到当前浏览器未注册至服务器端，启动客户端注册机制...');
         self.signUpClient(signUpClientSuccess, signUpClientFailed);
+    }
+    else {
+        // 本地有Ctoken
+        self.log('启动成功。当前浏览器已经在服务器端注册完毕。');
     }
 };

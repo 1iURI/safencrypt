@@ -10,7 +10,7 @@ function SAES() {
  * @param {type} data 待加密的字符串
  * @param {type} keyStr 秘钥
  * @param {type} ivStr 向量
- * @returns  加密后的数据
+ * @returns  {string}加密后的数据
  */
 SAES.aesEncrypt = function (data, keyStr, ivStr) {
     var sendData = CryptoJS.enc.Utf8.parse(data);
@@ -29,7 +29,7 @@ SAES.aesEncrypt = function (data, keyStr, ivStr) {
  * AES加密
  * @param data
  * @param keyStr
- * @return {加密后的数据}
+ * @return {string}加密后的数据
  */
 SAES.encrypt = function (data, keyStr) {
     return this.aesEncrypt(data, keyStr, keyStr);
@@ -40,7 +40,7 @@ SAES.encrypt = function (data, keyStr) {
  * @param {type} data BASE64的数据
  * @param {type} key 解密秘钥
  * @param {type} iv 向量
- * @return 解密后的数据
+ * @return {string} 解密后的数据
  */
 SAES.aesDecrypt = function (data, keyStr, ivStr) {
     var key = CryptoJS.enc.Utf8.parse(keyStr);
@@ -54,7 +54,7 @@ SAES.aesDecrypt = function (data, keyStr, ivStr) {
  * AES解密
  * @param data
  * @param keyStr
- * @return {解密后的数据}
+ * @return {string} 解密后的数据
  */
 SAES.decrypt = function (data, keyStr) {
     return this.aesDecrypt(data, keyStr, keyStr);
