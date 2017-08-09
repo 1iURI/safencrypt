@@ -46,7 +46,7 @@ public class SafencryptResponseService {
      * 加密基于设备有关业务的响应
      */
     private String encryptBasedClient(String content, String flag) {
-        return AES.encrypt(content, Safencrypt.getClientProxy().getClientIdentifier(flag));
+        return AES.encrypt(content, Safencrypt.getClientProxy().getClientIdentifierWithCToken(flag));
     }
 
     /**

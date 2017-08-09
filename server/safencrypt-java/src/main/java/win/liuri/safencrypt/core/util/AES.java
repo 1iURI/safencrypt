@@ -10,6 +10,11 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 
+/**
+ * AES加密相关
+ *
+ * @author 1iURI
+ */
 public class AES {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(AES.class);

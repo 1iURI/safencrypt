@@ -11,7 +11,7 @@ public class SafencryptClientProxyImpl implements SafencryptClientProxy {
     }
 
     @Override
-    public String getClientIdentifier(String cToken) {
+    public String getClientIdentifierWithCToken(String cToken) {
         return "2432b77ce74bc0e3";
     }
 }

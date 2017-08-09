@@ -17,6 +17,6 @@ public interface SafencryptClientProxy {
      * @param cToken 要获取的客户端的token令牌
      * @return 客户端标识字符串
      */
-    String getClientIdentifier(String cToken);
+    String getClientIdentifierWithCToken(String cToken);
 
 }

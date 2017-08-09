@@ -7,12 +7,10 @@ import win.liuri.safencrypt.core.exception.FlagInvalidException;
 import win.liuri.safencrypt.core.service.RSAEncryptService;
 import win.liuri.safencrypt.core.util.AES;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -94,11 +92,11 @@ public class SafencryptRequestWrapper extends HttpServletRequestWrapper {
         } else if (type == 2) {
             resultMap.put("identifier", new String[]{RSAEncryptService.decryptJSRequest(flag, data)});
         } else if (type == 3) {
-            String identifier = Safencrypt.getClientProxy().getClientIdentifier(flag);
+            String identifier = Safencrypt.getClientProxy().getClientIdentifierWithCToken(flag);
             String content = null;
             try {
                 System.out.println("pre data = " + data);
-                content = AES.decrypt(data, Safencrypt.getClientProxy().getClientIdentifier(flag));
+                content = AES.decrypt(data, Safencrypt.getClientProxy().getClientIdentifierWithCToken(flag));
                 content = URLDecoder.decode(URLDecoder.decode(content, "UTF-8"), "UTF-8");
                 for (String item : content.split("&")) {
                     Integer loc = item.indexOf("=");
