@@ -1,7 +1,6 @@
 package win.liuri.safencrypt;
 
 import com.google.gson.Gson;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,13 +50,13 @@ public class App {
         return "{\"result\": \"hi, safencrypt have receive your non_encrypt_msg - " + msg + "\"}";
     }
 
-    @RequestMapping(value = "/put-info" , method = RequestMethod.PUT)
-    public Object put_info(@RequestBody Test test){
+    @RequestMapping(value = "/put-info", method = RequestMethod.PUT)
+    public Object put_info(@RequestBody Test test) {
         return new Gson().toJson(test);
     }
 
-    public static void main(String[] args) {
-        SpringApplication.run(App.class, args);
-    }
+
+    // 测试环境的eureka地址： http://10.32.156.49:11111/eureka
+
 
 }
