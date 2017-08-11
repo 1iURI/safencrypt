@@ -4,6 +4,8 @@ import win.liuri.safencrypt.core.exception.DelegateInvalidException;
 import win.liuri.safencrypt.core.interfaces.SafencryptClientProxy;
 import win.liuri.safencrypt.core.interfaces.SafencryptUserProxy;
 
+import java.util.UUID;
+
 public class Safencrypt {
 
     private static SafencryptClientProxy clientProxy;
@@ -17,6 +19,15 @@ public class Safencrypt {
             throw new DelegateInvalidException();
         Safencrypt.clientProxy = clientProxy;
         Safencrypt.userProxy = userProxy;
+    }
+
+    /**
+     * 随机生成一个UToken字符串
+     *
+     * @return 刚刚生成的UToken字符串
+     */
+    public static String generateUToken() {
+        return UUID.randomUUID().toString();
     }
 
     public static SafencryptClientProxy getClientProxy() {

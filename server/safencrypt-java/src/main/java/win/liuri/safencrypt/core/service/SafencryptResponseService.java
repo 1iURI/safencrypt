@@ -53,7 +53,7 @@ public class SafencryptResponseService {
      * 加密基于用户有关业务的响应
      */
     private String encryptBasedUser(String content, String flag) {
-        return content;
+        return AES.encrypt(content, Safencrypt.getUserProxy().getUTokenWithCToken(flag));
     }
 
 }

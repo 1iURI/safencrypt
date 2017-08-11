@@ -101,6 +101,7 @@ function encryptSendData(url, data) {
     var sf = new Safencrypt();
     var ctoken = localStorage[sf.CTOKEN_STORAGE_NAME];
     var identifier = localStorage[sf.IDENTIFIER_STORAGE_NAME];
+    var utoken = localStorage[sf.UTOKEN_STORAGE_NAME];
 
     if (url.indexOf(safencrypt_config.apply_public_key_url) >= 0) {
         // 申请公钥
@@ -113,16 +114,16 @@ function encryptSendData(url, data) {
     else if (isBaseOnClient(url)) {
         // 基于客户端的请求
         monitor_log('监测到【基于客户端】的请求');
-        var result = "type=3&flag=" + ctoken + "&data=" + encodeURIComponent(SAES.encrypt(JSON.stringify(data), identifier));
-        console.log('REQ result = ' + result);
+        var result = "type=" + sf.REQ_TYPE_BASED_CLIENT + "&flag=" + ctoken + "&data=" + encodeURIComponent(SAES.encrypt(data, identifier));
         return result;
     }
     else if (isNonEncrypt(url)) {
         // 不加密的请求
+        return result;
     }
     else {
         // 基于用户相关的请求
-
+        var result = "tyoe=" + sf.REQ_TYPE_BASED_USER + "&flag=" + ctoken + "&data=" + encodeURIComponent(SAES.encrypt(data, utoken));
     }
     return data;
 }
@@ -143,7 +144,6 @@ function decryptResponse(data) {
 // 自动修改safencrypt的请求pt的请求
 (function (send) {
     XMLHttpRequest.prototype.send = function (data) {
-        console.log('URL = ' + this.safencrypt_url);
         this.setRequestHeader("content-type", "application/x-www-form-urlencoded;charset=utf-8");
         send.call(this, encryptSendData(this.safencrypt_url, data));
     };

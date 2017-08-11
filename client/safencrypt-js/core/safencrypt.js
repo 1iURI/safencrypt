@@ -2,12 +2,13 @@ function Safencrypt() {
 
     this.CTOKEN_STORAGE_NAME = 'safencrypt_ctoken';
     this.IDENTIFIER_STORAGE_NAME = 'safencrypt_identifier';
+    this.UTOKEN_STORAGE_NAME = 'safencrypt_utoken';
     var self = this;
 
     var REQ_TYPE_APPLY_PUBLIC_KEY = 1;
     var REQ_TYPE_SIGN_UP_CLIENT = 2;
-    var REQ_TYPE_BASED_CLIENT = 3;
-    var REQ_TYPE_BASED_USER = 4;
+    this.REQ_TYPE_BASED_CLIENT = 3;
+    this.REQ_TYPE_BASED_USER = 4;
 
     /**
      * 申请非对称加密公钥
@@ -119,4 +120,12 @@ Safencrypt.startUp = function (signUpClientSuccess, signUpClientFailed) {
         // 本地有Ctoken
         self.log('启动成功。当前浏览器已经在服务器端注册完毕。');
     }
+};
+
+/**
+ * 存储UToken到本地
+ * @param utoken uToken字符串
+ */
+Safencrypt.saveUToken = function (utoken) {
+    localStorage[new Safencrypt().UTOKEN_STORAGE_NAME] = utoken;
 };
