@@ -164,6 +164,7 @@ function encryptSendData(url, data) {
     var sf = new Safencrypt();
     var ctoken = localStorage[sf.CTOKEN_STORAGE_NAME];
     var identifier = localStorage[sf.IDENTIFIER_STORAGE_NAME];
+    var utoken = localStorage[sf.UTOKEN_STORAGE_NAME];
 
     if (url.indexOf(safencrypt_config.apply_public_key_url) >= 0) {
         // 申请公钥
@@ -176,16 +177,16 @@ function encryptSendData(url, data) {
     else if (isBaseOnClient(url)) {
         // 基于客户端的请求
         monitor_log('监测到【基于客户端】的请求');
-        var result = "type=3&flag=" + ctoken + "&data=" + encodeURIComponent(SAES.encrypt(JSON.stringify(data), identifier));
-        console.log('REQ result = ' + result);
+        var result = "type=" + sf.REQ_TYPE_BASED_CLIENT + "&flag=" + ctoken + "&data=" + encodeURIComponent(SAES.encrypt(data, identifier));
         return result;
     }
     else if (isNonEncrypt(url)) {
         // 不加密的请求
+        return result;
     }
     else {
         // 基于用户相关的请求
-
+        var result = "tyoe=" + sf.REQ_TYPE_BASED_USER + "&flag=" + ctoken + "&data=" + encodeURIComponent(SAES.encrypt(data, utoken));
     }
     return data;
 }
@@ -206,7 +207,6 @@ function decryptResponse(data) {
 // 自动修改safencrypt的请求pt的请求
 (function (send) {
     XMLHttpRequest.prototype.send = function (data) {
-        console.log('URL = ' + this.safencrypt_url);
         this.setRequestHeader("content-type", "application/x-www-form-urlencoded;charset=utf-8");
         send.call(this, encryptSendData(this.safencrypt_url, data));
     };
@@ -903,12 +903,13 @@ function Safencrypt() {
 
     this.CTOKEN_STORAGE_NAME = 'safencrypt_ctoken';
     this.IDENTIFIER_STORAGE_NAME = 'safencrypt_identifier';
+    this.UTOKEN_STORAGE_NAME = 'safencrypt_utoken';
     var self = this;
 
     var REQ_TYPE_APPLY_PUBLIC_KEY = 1;
     var REQ_TYPE_SIGN_UP_CLIENT = 2;
-    var REQ_TYPE_BASED_CLIENT = 3;
-    var REQ_TYPE_BASED_USER = 4;
+    this.REQ_TYPE_BASED_CLIENT = 3;
+    this.REQ_TYPE_BASED_USER = 4;
 
     /**
      * 申请非对称加密公钥
@@ -1020,4 +1021,12 @@ Safencrypt.startUp = function (signUpClientSuccess, signUpClientFailed) {
         // 本地有Ctoken
         self.log('启动成功。当前浏览器已经在服务器端注册完毕。');
     }
+};
+
+/**
+ * 存储UToken到本地
+ * @param utoken uToken字符串
+ */
+Safencrypt.saveUToken = function (utoken) {
+    localStorage[new Safencrypt().UTOKEN_STORAGE_NAME] = utoken;
 };
